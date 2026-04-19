@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M — Minimalism at its finest</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:  #0a0a0a;
+  --dark:   #141414;
+  --card:   #1a1a1a;
+  --accent: #c8a97e;
+  --text:   #e8e8e8;
+  --muted:  #888;
+  --border: #2a2a2a;
+  --nav-h:  72px;
+  --pad-x:  48px;
+  --r:      20px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--black); color:var(--text); font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+img  { display:block; max-width:100%; }
+a    { text-decoration:none; }
+
+/* ===================== NAV ===================== */
+nav {
+  position:fixed; top:0; left:0; right:0;
+  z-index:100;
+  height:var(--nav-h);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--pad-x);
+  background:rgba(10,10,10,.93);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav-left  { display:flex; align-items:center; gap:28px; }
+.logo      { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; letter-spacing:3px; color:var(--text); }
+.nav-auth  { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); cursor:pointer; }
+.nav-links { display:flex; align-items:center; gap:32px; list-style:none; }
+.nav-links a {
+  font-size:10px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); transition:color .25s; position:relative;
+}
+.nav-links a:hover  { color:var(--text); }
+.nav-links a.active { color:var(--text); }
+.nav-links a.active::after {
+  content:''; position:absolute; bottom:-4px; left:0; right:0;
+  height:1px; background:var(--accent);
+}
+.nav-right { display:flex; align-items:center; gap:16px; }
+.nav-bell  { width:18px; height:18px; stroke:var(--muted); cursor:pointer; transition:stroke .25s; fill:none; }
+.nav-bell:hover { stroke:var(--text); }
+
+/* Hamburger — hidden desktop, shown tablet/mobile */
+.hamburger {
+  display:none;
+  width:36px; height:36px;
+  flex-direction:column; align-items:center; justify-content:center;
+  gap:5px; cursor:pointer;
+  border:1px solid var(--border); border-radius:6px;
+  transition:border-color .3s, background .3s;
+  flex-shrink:0;
+}
+.hamburger:hover { border-color:var(--accent); background:rgba(200,169,126,.06); }
+.hamburger span {
+  display:block; height:1.5px; background:var(--text);
+  transform-origin:center;
+}
+.hamburger span:nth-child(1) { width:16px; }
+.hamburger span:nth-child(2) { width:10px; align-self:flex-end; margin-right:3px; }
+.hamburger span:nth-child(3) { width:16px; }
+
+@media (max-width:1023px) { .hamburger { display:flex; } }
+
+/* ===================== OVERLAY MENU =====================
+   z-index:500 > nav z-index:100
+   so overlay fully covers the page including the navbar.
+   Toggled via .is-open class — NO body class needed.
+======================================================== */
+.overlay {
+  position:fixed; inset:0;
+  z-index:500;
+  background:#0a0a0a;
+  display:flex; flex-direction:column;
+  opacity:0; pointer-events:none; visibility:hidden;
+  transition:opacity .4s ease, visibility .4s ease;
+}
+.overlay.is-open {
+  opacity:1; pointer-events:all; visibility:visible;
+}
+
+.ov-top {
+  height:var(--nav-h);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--pad-x);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.ov-close {
+  width:36px; height:36px;
+  border:1px solid var(--border); border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:18px; color:var(--text);
+  transition:border-color .3s, background .3s; user-select:none;
+}
+.ov-close:hover { border-color:var(--accent); background:rgba(200,169,126,.06); }
+
+.ov-body { flex:1; display:flex; align-items:center; padding:0 var(--pad-x); }
+.ov-list { width:100%; display:flex; flex-direction:column; }
+
+.ov-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:26px 0; border-bottom:1px solid var(--border);
+  cursor:pointer; position:relative; overflow:hidden;
+}
+.ov-item::before {
+  content:''; position:absolute; inset:0; width:0;
+  background:rgba(200,169,126,.05); transition:width .4s ease;
+}
+.ov-item:hover::before { width:100%; }
+
+.ov-num  { font-size:11px; letter-spacing:3px; color:var(--border); transition:color .3s; position:relative; }
+.ov-item:hover .ov-num { color:var(--accent); }
+
+.ov-item a {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,5vw,50px); font-weight:700;
+  color:var(--muted); transition:color .3s; position:relative;
+}
+.ov-item:hover a { color:var(--text); }
+
+.ov-arrow {
+  width:38px; height:38px; border:1px solid var(--border); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .3s, transform .3s; flex-shrink:0; position:relative;
+}
+.ov-item:hover .ov-arrow { border-color:var(--accent); transform:rotate(45deg); }
+.ov-arrow svg { width:13px; height:13px; stroke:var(--text); fill:none; }
+
+.ov-foot {
+  padding:24px var(--pad-x);
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.ov-socials { display:flex; gap:24px; }
+.ov-socials a { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); transition:color .3s; }
+.ov-socials a:hover { color:var(--accent); }
+.ov-copy { font-size:10px; letter-spacing:1px; color:var(--border); }
+
+/* ===================== HERO ===================== */
+#home {
+  min-height:100vh;
+  display:grid; grid-template-columns:1fr 1.8fr;
+  padding-top:var(--nav-h);
+}
+.hero-left {
+  display:flex; flex-direction:column; justify-content:center;
+  padding:80px var(--pad-x); gap:32px;
+}
+.hero-left h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(38px,4.5vw,68px);
+  font-weight:900; line-height:1.08; letter-spacing:-1px;
+}
+.shop-btn {
+  display:inline-flex; align-items:center; gap:14px;
+  font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--accent);
+}
+.shop-btn::before { content:''; width:40px; height:1px; background:var(--accent); }
+.social-links { display:flex; gap:20px; margin-top:auto; }
+.social-links a { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); transition:color .3s; }
+.social-links a:hover { color:var(--text); }
+
+.hero-grid {
+  display:grid; grid-template-columns:1.1fr 1fr 0.9fr;
+  gap:6px; height:100vh; position:relative;
+  padding:14px 14px 14px 0;
+}
+
+/* BUG 3 FIX — isolation:isolate is the most reliable way to clip
+   overflow:hidden + border-radius on Chrome/Edge Windows */
+.hero-card {
+  position:relative; overflow:hidden; cursor:pointer;
+  border-radius:var(--r);
+  isolation:isolate;
+}
+.hero-card img {
+  width:100%; height:100%; object-fit:cover;
+  filter:brightness(.6);
+  transition:transform .8s ease, filter .4s;
+}
+.hero-card:hover img { transform:scale(1.05); filter:brightness(.75); }
+.hero-card-label {
+  position:absolute; bottom:26px; left:22px;
+  font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text); opacity:.85;
+}
+.hero-nav { position:absolute; bottom:26px; right:26px; display:flex; gap:10px; }
+.nav-arrow {
+  width:38px; height:38px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.3);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:border-color .3s, background .3s;
+}
+.nav-arrow:hover { border-color:var(--accent); background:rgba(200,169,126,.1); }
+.nav-arrow svg { width:14px; height:14px; stroke:var(--text); fill:none; }
+
+/* ===================== SHARED ===================== */
+section { padding:100px var(--pad-x); }
+.section-tag   { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--accent); margin-bottom:16px; }
+.section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,4vw,54px); font-weight:700; line-height:1.1; margin-bottom:20px; }
+.section-desc  { color:var(--muted); font-size:15px; line-height:1.8; max-width:480px; }
+
+/* ===================== CATEGORIES ===================== */
+#categories { background:var(--dark); border-top:1px solid var(--border); }
+.categories-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:56px; }
+.view-all { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--accent); border-bottom:1px solid var(--accent); padding-bottom:2px; cursor:pointer; }
+.categories-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.cat-card {
+  position:relative; aspect-ratio:3/4; overflow:hidden; cursor:pointer; background:var(--card);
+  border-radius:var(--r); isolation:isolate;
+}
+.cat-card img { width:100%; height:100%; object-fit:cover; filter:brightness(.5); transition:transform .7s, filter .4s; }
+.cat-card:hover img { transform:scale(1.08); filter:brightness(.7); }
+.cat-info { position:absolute; bottom:0; left:0; right:0; padding:28px 22px; background:linear-gradient(transparent,rgba(0,0,0,.85)); }
+.cat-name  { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:5px; }
+.cat-count { font-size:11px; letter-spacing:1px; color:var(--muted); }
+.cat-arrow {
+  position:absolute; top:18px; right:18px;
+  width:30px; height:30px; border:1px solid rgba(255,255,255,.2); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:translateY(-6px); transition:opacity .3s, transform .3s;
+}
+.cat-card:hover .cat-arrow { opacity:1; transform:translateY(0); }
+.cat-arrow svg { width:12px; height:12px; stroke:white; fill:none; }
+
+/* ===================== ABOUT ===================== */
+#about { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; background:var(--black); }
+.about-image { position:relative; aspect-ratio:4/5; overflow:hidden; border-radius:var(--r); isolation:isolate; }
+.about-image img { width:100%; height:100%; object-fit:cover; filter:brightness(.7); }
+.about-badge {
+  position:absolute; bottom:-20px; right:-20px;
+  width:130px; height:130px; border-radius:50%; background:var(--accent);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  color:var(--black); padding:14px;
+}
+.about-badge .num   { font-family:'Playfair Display',serif; font-size:34px; font-weight:900; line-height:1; }
+.about-badge .label { font-size:9px; letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+.about-content { padding:20px 0; }
+.about-stats { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:44px; padding-top:44px; border-top:1px solid var(--border); }
+.stat-num   { font-family:'Playfair Display',serif; font-size:40px; font-weight:700; color:var(--accent); line-height:1; margin-bottom:6px; }
+.stat-label { font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; }
+
+/* ===================== SERVICES ===================== */
+#services { background:var(--dark); border-top:1px solid var(--border); }
+.services-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:72px; gap:32px; }
+.services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); }
+.service-card { background:var(--dark); padding:44px 36px; position:relative; overflow:hidden; cursor:pointer; transition:background .4s; }
+.service-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transition:transform .4s; transform-origin:left; }
+.service-card:hover { background:#1d1d1d; }
+.service-card:hover::before { transform:scaleX(1); }
+.service-num   { font-family:'Playfair Display',serif; font-size:60px; font-weight:900; color:var(--border); line-height:1; margin-bottom:28px; transition:color .4s; }
+.service-card:hover .service-num { color:rgba(200,169,126,.12); }
+.service-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; margin-bottom:14px; }
+.service-desc  { font-size:14px; line-height:1.8; color:var(--muted); margin-bottom:28px; }
+.service-tags  { display:flex; flex-wrap:wrap; gap:8px; }
+.tag { font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:5px 12px; border:1px solid var(--border); color:var(--muted); border-radius:2px; transition:border-color .3s, color .3s; }
+.service-card:hover .tag { border-color:rgba(200,169,126,.3); color:var(--accent); }
+
+/* ===================== FOOTER ===================== */
+footer { padding:56px var(--pad-x); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; }
+.footer-logo  { font-family:'Playfair Display',serif; font-size:30px; font-weight:900; letter-spacing:4px; }
+.footer-links { display:flex; gap:28px; }
+.footer-links a { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); transition:color .3s; }
+.footer-links a:hover { color:var(--accent); }
+.footer-copy { font-size:11px; color:var(--muted); letter-spacing:1px; }
+
+/* ===================== TABLET ≤ 1023px ===================== */
+@media (max-width:1023px) {
+  :root { --pad-x:32px; --nav-h:64px; }
+  #home { grid-template-columns:1fr; grid-template-rows:auto 55vw; min-height:auto; }
+  .hero-left { padding:64px var(--pad-x) 40px; gap:24px; }
+  .hero-left h1 { font-size:clamp(36px,6vw,52px); }
+  .social-links { margin-top:0; }
+  .hero-grid { height:55vw; padding:8px 8px 8px 0; }
+  .categories-grid { grid-template-columns:repeat(2,1fr); }
+  .cat-card { aspect-ratio:1/1; }
+  .categories-header { flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:40px; }
+  #about { grid-template-columns:1fr; gap:56px; }
+  .about-image { aspect-ratio:16/9; max-height:480px; }
+  .about-badge { bottom:-16px; right:16px; width:110px; height:110px; }
+  .about-badge .num { font-size:28px; }
+  .services-grid { grid-template-columns:repeat(2,1fr); }
+  .services-header { flex-direction:column; align-items:flex-start; gap:16px; margin-bottom:48px; }
+  footer { flex-direction:column; align-items:flex-start; gap:20px; }
+}
+
+/* ===================== MOBILE ≤ 767px ===================== */
+@media (max-width:767px) {
+  :root { --pad-x:20px; --nav-h:60px; }
+  .nav-auth, .nav-links { display:none; }
+  #home { grid-template-rows:auto 70vw; }
+  .hero-left { padding:48px var(--pad-x) 32px; gap:20px; }
+  .hero-left h1 { font-size:clamp(30px,9vw,44px); }
+  .hero-grid { grid-template-columns:1fr 1fr; height:70vw; padding:6px 6px 6px 0; }
+  .hero-card:nth-child(3) { display:none; }
+  .hero-card:nth-child(1) { grid-row:1/3; }
+  .hero-card:nth-child(2) { grid-row:1/3; }
+  section { padding:72px var(--pad-x); }
+  .categories-grid { gap:6px; }
+  .cat-card { aspect-ratio:3/4; }
+  .cat-name { font-size:16px; }
+  #about { gap:40px; padding:72px var(--pad-x); }
+  .about-image { aspect-ratio:4/3; }
+  .about-badge { bottom:-12px; right:12px; width:96px; height:96px; }
+  .about-badge .num { font-size:24px; }
+  .about-stats { gap:20px; margin-top:32px; padding-top:32px; }
+  .stat-num { font-size:32px; }
+  .services-grid { grid-template-columns:1fr; }
+  .service-card { padding:36px 28px; }
+  .service-num { font-size:48px; margin-bottom:20px; }
+  footer { flex-direction:column; align-items:flex-start; padding:44px var(--pad-x); gap:20px; }
+  .footer-links { flex-wrap:wrap; gap:20px; }
+  .ov-item { padding:20px 0; }
+  .ov-foot { flex-direction:column; align-items:flex-start; gap:12px; }
+}
+
+@media (max-width:380px) {
+  .hero-left h1 { font-size:28px; }
+  .categories-grid { grid-template-columns:1fr; }
+  .cat-card { aspect-ratio:16/9; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== OVERLAY MENU ===================== -->
+<div class="overlay" id="overlay">
+  <div class="ov-top">
+    <span class="logo">M</span>
+    <div class="ov-close" id="ovClose">&#10005;</div>
+  </div>
+  <div class="ov-body">
+    <div class="ov-list">
+      <div class="ov-item">
+        <span class="ov-num">01</span>
+        <a href="#home">Home</a>
+        <div class="ov-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </div>
+      <div class="ov-item">
+        <span class="ov-num">02</span>
+        <a href="#categories">Categories</a>
+        <div class="ov-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </div>
+      <div class="ov-item">
+        <span class="ov-num">03</span>
+        <a href="#about">About</a>
+        <div class="ov-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </div>
+      <div class="ov-item">
+        <span class="ov-num">04</span>
+        <a href="#services">Services</a>
+        <div class="ov-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="ov-foot">
+    <div class="ov-socials">
+      <a href="#">Facebook</a>
+      <a href="#">Instagram</a>
+      <a href="#">Twitter</a>
+    </div>
+    <span class="ov-copy">© 2026 Minimalism Studio</span>
+  </div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<nav>
+  <div class="nav-left">
+    <span class="logo">M</span>
+    <span class="nav-auth">Your brand</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+  </ul>
+  <div class="nav-right">
+    <svg class="nav-bell" viewBox="0 0 24 24" stroke-width="1.5">
+      <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+    </svg>
+    <div class="hamburger" id="hamburger">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="home" style="padding:0;">
+  <div class="hero-left">
+    <h1>Your<br>Description</h1>
+    <a class="shop-btn" href="#categories">Shop All</a>
+    <div class="social-links">
+      <a href="#">F</a><a href="#">Ig</a><a href="#">Tw</a>
+    </div>
+  </div>
+  <div class="hero-grid">
+    <div class="hero-card">
+      <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80" alt="Kitchen">
+      <span class="hero-card-label">Kitchen</span>
+    </div>
+    <div class="hero-card">
+      <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80" alt="Bathroom">
+      <span class="hero-card-label">Bathroom</span>
+    </div>
+    <div class="hero-card">
+      <img src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=600&q=80" alt="Lighting">
+      <span class="hero-card-label">Lighting</span>
+    </div>
+    <div class="hero-nav">
+      <div class="nav-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg></div>
+      <div class="nav-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CATEGORIES ===================== -->
+<section id="categories">
+  <div class="categories-header">
+    <div>
+      <p class="section-tag">Explore</p>
+      <h2 class="section-title">Shop by Category</h2>
+    </div>
+    <a class="view-all" href="#">View All</a>
+  </div>
+  <div class="categories-grid">
+    <div class="cat-card">
+      <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500&q=80" alt="Kitchen">
+      <div class="cat-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      <div class="cat-info"><div class="cat-name">Kitchen</div><div class="cat-count">48 Products</div></div>
+    </div>
+    <div class="cat-card">
+      <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&q=80" alt="Bathroom">
+      <div class="cat-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      <div class="cat-info"><div class="cat-name">Bathroom</div><div class="cat-count">32 Products</div></div>
+    </div>
+    <div class="cat-card">
+      <img src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=500&q=80" alt="Lighting">
+      <div class="cat-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      <div class="cat-info"><div class="cat-name">Lighting</div><div class="cat-count">27 Products</div></div>
+    </div>
+    <div class="cat-card">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80" alt="Living Room">
+      <div class="cat-arrow"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+      <div class="cat-info"><div class="cat-name">Living Room</div><div class="cat-count">61 Products</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section id="about">
+  <div class="about-image">
+    <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=700&q=80" alt="About">
+    <div class="about-badge"><span class="num">15+</span><span class="label">Years of Design</span></div>
+  </div>
+  <div class="about-content">
+    <p class="section-tag">Our Story</p>
+    <h2 class="section-title">For<br>Example.</h2>
+    <p class="section-desc">We believe that great design is born from restraint. Every piece in our collection is chosen for its ability to elevate a space without overwhelming it — where silence speaks louder than decoration.</p>
+    <p class="section-desc" style="margin-top:18px;">Founded in 2009, we have curated living experiences for discerning clients across 40 countries, always with one principle in mind: less, but better.</p>
+    <div class="about-stats">
+      <div><div class="stat-num">2.4k+</div><div class="stat-label">Products Curated</div></div>
+      <div><div class="stat-num">40+</div><div class="stat-label">Countries Served</div></div>
+      <div><div class="stat-num">98%</div><div class="stat-label">Client Satisfaction</div></div>
+      <div><div class="stat-num">120+</div><div class="stat-label">Design Partners</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SERVICES ===================== -->
+<section id="services">
+  <div class="services-header">
+    <div>
+      <p class="section-tag">What We Offer</p>
+      <h2 class="section-title">Our Services</h2>
+    </div>
+    <p class="section-desc">Comprehensive design solutions tailored to your vision and space.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <h3 class="service-title">Interior Consulting</h3>
+      <p class="service-desc">Full-scope interior design consultation from concept to completion. We work closely with you to translate your vision into a cohesive, livable space.</p>
+      <div class="service-tags"><span class="tag">Concept Design</span><span class="tag">3D Rendering</span><span class="tag">Space Planning</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <h3 class="service-title">Product Sourcing</h3>
+      <p class="service-desc">Access to our exclusive network of artisans and manufacturers worldwide. Every piece is handpicked to meet our uncompromising standards of quality.</p>
+      <div class="service-tags"><span class="tag">Custom Orders</span><span class="tag">Bespoke Pieces</span><span class="tag">Global Sourcing</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <h3 class="service-title">Installation & Setup</h3>
+      <p class="service-desc">White-glove delivery and professional installation. Our team ensures every element is placed with intention, handling every detail so you don't have to.</p>
+      <div class="service-tags"><span class="tag">White Glove</span><span class="tag">Assembly</span><span class="tag">Styling</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">04</div>
+      <h3 class="service-title">Renovation Planning</h3>
+      <p class="service-desc">End-to-end renovation management for kitchens, bathrooms, and living spaces. We coordinate contractors, timelines, and materials seamlessly.</p>
+      <div class="service-tags"><span class="tag">Project Mgmt</span><span class="tag">Contractor Network</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">05</div>
+      <h3 class="service-title">Lighting Design</h3>
+      <p class="service-desc">Bespoke lighting plans that sculpt atmosphere and define the mood of every room. From ambient to task lighting, we consider every layer of light.</p>
+      <div class="service-tags"><span class="tag">Ambient</span><span class="tag">Accent</span><span class="tag">Smart Lighting</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">06</div>
+      <h3 class="service-title">Virtual Design</h3>
+      <p class="service-desc">Remote design services with full digital deliverables. Get a professionally designed space from anywhere in the world with our online-first process.</p>
+      <div class="service-tags"><span class="tag">E-Design</span><span class="tag">Virtual Tour</span><span class="tag">Remote</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <span class="footer-logo">M</span>
+  <div class="footer-links">
+    <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+  </div>
+  <span class="footer-copy">© 2026 Minimalism Studio. All rights reserved.</span>
+</footer>
+
+<script>
+/* ============================================================
+   BUG 2 FIX — OVERLAY MENU
+   - Toggles .is-open on #overlay element directly
+   - Uses addEventListener (no inline onclick, no body class)
+   - overlay z-index 500 > nav z-index 100
+============================================================ */
+const overlay   = document.getElementById('overlay');
+const hamburger = document.getElementById('hamburger');
+const ovClose   = document.getElementById('ovClose');
+
+hamburger.addEventListener('click', function() {
+  overlay.classList.add('is-open');
+});
+
+ovClose.addEventListener('click', function() {
+  overlay.classList.remove('is-open');
+});
+
+overlay.querySelectorAll('a').forEach(function(link) {
+  link.addEventListener('click', function() {
+    overlay.classList.remove('is-open');
+  });
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') overlay.classList.remove('is-open');
+});
+
+/* ============================================================
+   BUG 1 FIX — NAVBAR ACTIVE LINK
+   - getBoundingClientRect() checked on every scroll event
+   - Removes ALL active classes first, then adds only one
+   - If scrolled above all sections, no link is active
+============================================================ */
+const sections = Array.from(document.querySelectorAll('section[id]'));
+const navLinks = document.querySelectorAll('.nav-links a');
+
+function setActive() {
+  const navH = document.querySelector('nav').offsetHeight;
+  let current = null;
+
+  sections.forEach(function(sec) {
+    const top = sec.getBoundingClientRect().top;
+    if (top <= navH + 60) current = sec.id;
+  });
+
+  navLinks.forEach(function(link) {
+    link.classList.remove('active');
+    if (current && link.getAttribute('href') === '#' + current) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', setActive, { passive: true });
+setActive();
+</script>
+</body>
+</html>
